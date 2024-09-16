@@ -10,6 +10,7 @@ import (
 
 func SetUpRouter() *gin.Engine {
 	router := gin.Default()
+	router.SetTrustedProxies(nil)
 
 	router.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
@@ -17,11 +18,8 @@ func SetUpRouter() *gin.Engine {
 		})
 	})
 
-	userGroup := router.Group("/users")
-	{
-		userGroup.GET("/", controllers.GetUsers)
-		userGroup.POST("/", controllers.CreateUser)
-	}
+	router.POST("/register", controllers.RegisterUser)
+	router.POST("/login", controllers.LoginUser)
 
 	return router
 }
