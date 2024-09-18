@@ -1,7 +1,7 @@
 <template>
     <div class="login-form">
         <h2>Login</h2>
-        <form @submit.prevent="hendleLogin">
+        <form @submit.prevent="hendleLoginForm">
             <div>
                 <label for="email">Email</label>
                 <input type="email" id="email" v-model="email" required />
@@ -16,7 +16,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import { handleLogin } from '../services/authService';
 
 export default {
     data() {
@@ -26,15 +26,21 @@ export default {
         };
     },
     methods: {
-       async hendleLogin() {
+       async hendleLoginForm() {
             const loginData = {
                 email: this.email,
                 password: this.password,
             };
 
             try {
-                const response = await axios.post('http://localhost:8080/login', loginData);
+                const response = await handleLogin(loginData);
+                const token = response.token
+
+                localStorage.setItem('authToken', token)
+
                 console.log('login successful:', response.data);
+
+                this.$router.push('/create-post');
             } catch (error) {
                 console.error('Error loging in', error.message);
             }

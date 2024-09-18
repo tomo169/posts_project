@@ -1,7 +1,7 @@
 <template>
     <div class="register-form">
         <h2>Register</h2>
-        <form @submit.prevent="handleRegister">
+        <form @submit.prevent="handleRegisterForm">
             <div>
                 <label for="name">Name</label>
                 <input type="text" id="name" v-model="name" required />
@@ -24,7 +24,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import { handleRegister } from '../services/authService';
 
 export default {
     data() {
@@ -36,7 +36,7 @@ export default {
         };
     },
     methods: {
-        async handleRegister() {
+        async handleRegisterForm() {
 
             if (this.password !== this.confirmPassword) {
                 alert("Password don't match!")
@@ -50,7 +50,7 @@ export default {
             };
 
             try {
-                const response = await axios.post('http://localhost:8080/register', registerData);
+                const response = await handleRegister(registerData);
                 console.log('Register successful:', response.data);
             } catch (error) {
                 console.error('Eror logging in:', error.message);
