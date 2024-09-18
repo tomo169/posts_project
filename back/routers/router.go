@@ -3,7 +3,6 @@ package routers
 import (
 	"back/controllers"
 	"back/middleware"
-	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -16,10 +15,9 @@ func SetUpRouter() *gin.Engine {
 	config := cors.Config{
 		AllowOrigins:     []string{"http://localhost:5173", "https://github.com"},
 		AllowMethods:     []string{"GET", "POST"},
-		AllowHeaders:     []string{"Origin", "Content-Type"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
 	}
 
 	router.Use(gin.Logger(), cors.New(config))
