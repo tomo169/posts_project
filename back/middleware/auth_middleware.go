@@ -25,7 +25,7 @@ func AuthMiddleware(c *gin.Context) {
 	}
 
 	token := parts[1]
-	email, err := helpers.ValidateToken(token)
+	email, userID, err := helpers.ValidateToken(token)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token: " + err.Error()})
 		c.Abort()
@@ -33,5 +33,6 @@ func AuthMiddleware(c *gin.Context) {
 	}
 
 	c.Set("email", email)
+	c.Set("userID", userID)
 	c.Next()
 }

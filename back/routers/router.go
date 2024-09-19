@@ -34,6 +34,7 @@ func SetUpRouter() *gin.Engine {
 		api.GET("/posts/:id", controllers.GetPost)
 		api.PUT("/posts/:id", controllers.UpdatePost)
 		api.DELETE("/posts/:id", controllers.DeletePost)
+		api.GET("/users/:userID/posts", controllers.GetPostsByUser)
 	}
 
 	return router

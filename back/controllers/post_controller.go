@@ -84,3 +84,21 @@ func DeletePost(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Post deleted"})
 }
+
+func GetPostsByUser(c *gin.Context) {
+	userID := c.Param("userID") // Get the userID from URL parameter
+
+	var posts []models.Post
+	// Fetch posts where 'AuthorID' matches 'userID'
+	if err := config.DB.Where("author_id = ?", userID).Find(&posts).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch posts"})
+		return
+	}
+
+	if len(posts) == 0 {
+		c.JSON(http.StatusOK, []models.Post{})
+		return
+	}
+
+	c.JSON(http.StatusOK, posts)
+}
