@@ -26,7 +26,7 @@ func GenerateJWT(userID uint, email string) (string, error) {
 }
 
 // ValidateToken checks if the token is valid and returns the user email if it is
-func ValidateToken(tokenString string) (uint, string, error) {
+func ValidateToken(tokenString string) (string, uint, error) {
 	claims := jwt.MapClaims{}
 
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
@@ -34,22 +34,22 @@ func ValidateToken(tokenString string) (uint, string, error) {
 	})
 
 	if err != nil {
-		return 0, "", err
+		return "", 0, err
 	}
 
 	if !token.Valid {
-		return 0, "", fmt.Errorf("invalid token")
-	}
-
-	userID, ok := claims["userID"].(float64) // JWT numeric values are decoded as float64
-	if !ok {
-		return 0, "", fmt.Errorf("userID not found in token")
+		return "", 0, fmt.Errorf("invalid token")
 	}
 
 	email, ok := claims["email"].(string)
 	if !ok {
-		return 0, "", fmt.Errorf("email not found in token")
+		return "", 0, fmt.Errorf("email not found in token")
 	}
 
-	return uint(userID), email, nil
+	userID, ok := claims["userID"].(float64) // JWT numeric values are decoded as float64
+	if !ok {
+		return "", 0, fmt.Errorf("userID not found in token")
+	}
+
+	return email, uint(userID), nil
 }
