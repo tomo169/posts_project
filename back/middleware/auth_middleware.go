@@ -32,7 +32,7 @@ func AuthMiddleware(c *gin.Context) {
 		return
 	}
 
-	c.Set("email", email)
 	c.Set("userID", userID)
+	c.Set("email", email)
 	c.Next()
 }

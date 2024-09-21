@@ -4,6 +4,8 @@ import (
 	"back/config"
 	"back/models"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,17 +20,16 @@ func CreatePost(c *gin.Context) {
 
 	email := c.MustGet("email").(string) // Retrieve email from context set by middleware
 
-	// First, find the user by email
+	// Find the user by email
 	var user models.User
 	if result := config.DB.Where("email = ?", email).First(&user); result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "User not found"})
 		return
 	}
 
-	// Set AuthorID from the found user
 	post.AuthorID = user.ID
 
-	// Now create the post with the AuthorID set to the user's ID
+	// Create the post with the AuthorID set to the user's ID
 	if result := config.DB.Create(&post); result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
 		return
@@ -38,12 +39,48 @@ func CreatePost(c *gin.Context) {
 
 // GetPosts retrieves all posts
 func GetPosts(c *gin.Context) {
+	limit := 10
+	offset := 0
+
+	if l, err := strconv.Atoi(c.Query("limit")); err == nil {
+		limit = l
+	}
+	if o, err := strconv.Atoi(c.Query("offset")); err == nil {
+		offset = o
+	}
+
 	var posts []models.Post
-	if result := config.DB.Find(&posts); result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+	// Preload the Author relationship to get author data
+	if err := config.DB.Preload("Author").Order("created_at desc").Limit(limit).Offset(offset).Find(&posts).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch posts"})
 		return
 	}
-	c.JSON(http.StatusOK, posts)
+
+	type PostResponse struct {
+		ID         uint      `json:"id"`
+		Title      string    `json:"title"`
+		Content    string    `json:"content"`
+		AuthorName string    `json:"authorName"`
+		AuthorID   uint      `json:"authorId"`
+		CreatedAt  time.Time `json:"createdAt"`
+		UpdatedAt  time.Time `json:"updatedAt"`
+	}
+
+	var response []PostResponse
+	for _, post := range posts {
+		response = append(response, PostResponse{
+			ID:         post.ID,
+			Title:      post.Title,
+			Content:    post.Content,
+			AuthorName: post.Author.Name,
+			AuthorID:   post.AuthorID,
+			CreatedAt:  post.CreatedAt,
+			UpdatedAt:  post.UpdatedAt,
+		})
+	}
+
+	// Respond with posts and included author details
+	c.JSON(http.StatusOK, response)
 }
 
 // GetPost retrieves a post by id
@@ -86,7 +123,7 @@ func DeletePost(c *gin.Context) {
 }
 
 func GetPostsByUser(c *gin.Context) {
-	userID := c.Param("userID") // Get the userID from URL parameter
+	userID := c.Param("userID")
 
 	var posts []models.Post
 	// Fetch posts where 'AuthorID' matches 'userID'

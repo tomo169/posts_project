@@ -12,7 +12,7 @@ var jwtKey = []byte("your_secret_key")
 func GenerateJWT(userID uint, email string) (string, error) {
 	claims := jwt.MapClaims{
 		"email":  email,
-		"userID": userID, // Add the userID to the token
+		"userID": userID,
 		"exp":    time.Now().Add(time.Hour * 72).Unix(),
 	}
 
@@ -25,7 +25,7 @@ func GenerateJWT(userID uint, email string) (string, error) {
 	return tokenString, nil
 }
 
-// ValidateToken checks if the token is valid and returns the user email if it is
+// ValidateToken checks if the token is valid and returns the user email and userID if it is
 func ValidateToken(tokenString string) (string, uint, error) {
 	claims := jwt.MapClaims{}
 
@@ -46,7 +46,7 @@ func ValidateToken(tokenString string) (string, uint, error) {
 		return "", 0, fmt.Errorf("email not found in token")
 	}
 
-	userID, ok := claims["userID"].(float64) // JWT numeric values are decoded as float64
+	userID, ok := claims["userID"].(float64)
 	if !ok {
 		return "", 0, fmt.Errorf("userID not found in token")
 	}

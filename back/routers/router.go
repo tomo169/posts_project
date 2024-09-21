@@ -14,7 +14,7 @@ func SetUpRouter() *gin.Engine {
 
 	config := cors.Config{
 		AllowOrigins:     []string{"http://localhost:5173", "https://github.com"},
-		AllowMethods:     []string{"GET", "POST"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
@@ -24,13 +24,13 @@ func SetUpRouter() *gin.Engine {
 
 	router.POST("/register", controllers.RegisterUser)
 	router.POST("/login", controllers.LoginUser)
+	router.GET("/posts", controllers.GetPosts)
 
 	// Protected routes
 	api := router.Group("/api")
 	api.Use(middleware.AuthMiddleware)
 	{
 		api.POST("/posts", controllers.CreatePost)
-		api.GET("/posts", controllers.GetPosts)
 		api.GET("/posts/:id", controllers.GetPost)
 		api.PUT("/posts/:id", controllers.UpdatePost)
 		api.DELETE("/posts/:id", controllers.DeletePost)
