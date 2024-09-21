@@ -7,6 +7,7 @@ import (
 
 func main() {
 	config.ConnectDB()
+	config.InitRedis()
 
 	router := routers.SetUpRouter()
 

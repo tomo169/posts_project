@@ -3,12 +3,25 @@ package controllers
 import (
 	"back/config"
 	"back/models"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 )
+
+type PostResponse struct {
+	ID         uint      `json:"id"`
+	Title      string    `json:"title"`
+	Content    string    `json:"content"`
+	AuthorName string    `json:"authorName"`
+	AuthorID   uint      `json:"authorId"`
+	CreatedAt  time.Time `json:"createdAt"`
+	UpdatedAt  time.Time `json:"updatedAt"`
+}
 
 // CreatePost creates a new post
 func CreatePost(c *gin.Context) {
@@ -49,38 +62,46 @@ func GetPosts(c *gin.Context) {
 		offset = o
 	}
 
-	var posts []models.Post
-	// Preload the Author relationship to get author data
-	if err := config.DB.Preload("Author").Order("created_at desc").Limit(limit).Offset(offset).Find(&posts).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch posts"})
+	// Generate a Redis key based on the query parameters
+	redisKey := fmt.Sprintf("posts:%d:%d", limit, offset)
+
+	// Try to get the cached posts
+	val, err := config.Rdb.Get(config.Ctx, redisKey).Result()
+	if err == redis.Nil {
+		// Cache miss; need to fetch data from the database
+		var posts []models.Post
+		if err := config.DB.Preload("Author").Order("created_at desc").Limit(limit).Offset(offset).Find(&posts).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch posts"})
+			return
+		}
+
+		var response []PostResponse
+		for _, post := range posts {
+			response = append(response, PostResponse{
+				ID:         post.ID,
+				Title:      post.Title,
+				Content:    post.Content,
+				AuthorName: post.Author.Name,
+				AuthorID:   post.AuthorID,
+				CreatedAt:  post.CreatedAt,
+				UpdatedAt:  post.UpdatedAt,
+			})
+		}
+
+		// Serialize response to JSON and store in Redis
+		jsonData, _ := json.Marshal(response)
+		config.Rdb.Set(config.Ctx, redisKey, jsonData, 24*time.Hour)
+
+		c.JSON(http.StatusOK, response)
+	} else if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch posts from cache"})
 		return
+	} else {
+		// Cache hit; send the cached data
+		var cachedPosts []PostResponse
+		json.Unmarshal([]byte(val), &cachedPosts)
+		c.JSON(http.StatusOK, cachedPosts)
 	}
-
-	type PostResponse struct {
-		ID         uint      `json:"id"`
-		Title      string    `json:"title"`
-		Content    string    `json:"content"`
-		AuthorName string    `json:"authorName"`
-		AuthorID   uint      `json:"authorId"`
-		CreatedAt  time.Time `json:"createdAt"`
-		UpdatedAt  time.Time `json:"updatedAt"`
-	}
-
-	var response []PostResponse
-	for _, post := range posts {
-		response = append(response, PostResponse{
-			ID:         post.ID,
-			Title:      post.Title,
-			Content:    post.Content,
-			AuthorName: post.Author.Name,
-			AuthorID:   post.AuthorID,
-			CreatedAt:  post.CreatedAt,
-			UpdatedAt:  post.UpdatedAt,
-		})
-	}
-
-	// Respond with posts and included author details
-	c.JSON(http.StatusOK, response)
 }
 
 // GetPost retrieves a post by id
