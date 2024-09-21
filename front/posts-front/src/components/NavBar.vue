@@ -6,9 +6,10 @@
         <li><router-link to="/profile">Profile</router-link></li>
       </ul>
       <ul class="nav-right">
+        <li v-if="isLoggedIn"><router-link to="/create-post">Create</router-link></li>
         <li v-if="isLoggedIn"><a @click="handleLogout">Logout</a></li>
         <li v-if="!isLoggedIn"><router-link to="/login">Login</router-link></li>
-        <li v-if="!isLoggedIn"><router-link to="/register">Sign Up</router-link></li>
+        <li v-if="!isLoggedIn"><router-link to="/register">Register</router-link></li>
       </ul>
     </nav>
   </template>
@@ -29,8 +30,7 @@
         // Remove the JWT token from localStorage
         localStorage.removeItem('authToken');
         this.isLoggedIn = false;
-        // Redirect to login page
-        this.$router.push('/login');
+        this.$router.push('/');
       },
     },
     watch: {
@@ -49,6 +49,8 @@
     padding: 10px;
     background-color: #333;
     color: white;
+    border: 1px solid #646cff;
+    border-radius: 8px;
   }
   
   .nav-left, .nav-right {

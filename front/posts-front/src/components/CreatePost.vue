@@ -2,11 +2,11 @@
     <div class="create-post-form">
       <h2>Create a New Post</h2>
       <form @submit.prevent="handleCreatePost">
-        <div>
+        <div class="form-group">
           <label for="title">Title</label>
           <input type="text" id="title" v-model="title" required />
         </div>
-        <div>
+        <div class="form-group">
           <label for="content">Content</label>
           <textarea id="content" v-model="content" required></textarea>
         </div>
@@ -38,9 +38,10 @@
           // Reset form fields after successful submission
           this.title = '';
           this.content = '';
+          this.$router.push('/profile');
         } catch (error) {
           console.error('Error creating post:', error.message);
-          // Handle any error (e.g., show a notification)
+          // Handle any error 
         }
       },
     },
@@ -49,12 +50,43 @@
   
   <style scoped>
   .create-post-form {
-    max-width: 600px;
+    max-width: 800px;
     margin: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
   }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+  }
+
+  input{
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #f7f57c;
+  background-color: #242424;
+  border-radius: 4px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
   textarea {
     width: 100%;
     height: 150px;
+    border-radius: 8px;
+    border: 1px solid #f7f57c;
+    background-color: #242424;
+    padding: 12px;
+  }
+
+  button {
+    margin-top: 12px;
   }
   </style>
   
