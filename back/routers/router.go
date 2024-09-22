@@ -13,9 +13,9 @@ func SetUpRouter() *gin.Engine {
 	router.SetTrustedProxies(nil)
 
 	config := cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173", "https://github.com"},
+		AllowOrigins:     []string{"http://localhost", "https://github.com"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization", "accept", "origin", "Cache-Control", "X-Requested-With"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 	}
